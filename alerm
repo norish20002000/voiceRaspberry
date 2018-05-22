@@ -1,0 +1,87 @@
+#!/bin/sh
+
+now=`date +"%H:%M"`
+
+if [ $1 = 'set' ]; then
+  setTime=$2
+  echo "alerm call" | at ${setTime}
+
+  # :で区切って時：分を代入
+  IFS=":"
+  set -- ${setTime}
+  setHour=$1
+  setMinute=$2
+  IFS=" "
+
+  echo ${setTime}'にセットしました'
+  exit 0
+fi
+
+if [ $1 = 'call' ]; then
+  # ABACO LIBROS Y CAFE RADIO
+  # mplayer -really-quiet -volume 20 -playlist 'http://yp.shoutcast.com/sbin/tunein-station.pls?id=512156' </dev/null >/dev/null 2>&1 &
+  nowHour=`date +"%k"`
+  nowMinute=`date +"%M"`
+
+  # 東京の天気、最高／最低気温、エジプトの天気を取得
+  weatherTranslate() {
+    case "$1" in
+      "Thunderstorm" ) echo "雷雨" ;;
+      "Drizzle" ) echo "霧雨" ;;
+      "Rain" ) echo "雨" ;;
+      "Snow" ) echo "雪" ;;
+      "Atmosphere" ) echo "霧" ;;
+      "Clear" ) echo "快晴" ;;
+      "Clouds" ) echo "曇り" ;;
+      * ) echo "謎" ;;
+    esac
+  }
+
+  wget -q 'http://api.openweathermap.org/data/2.5/forecast/daily?q=Tokyo&mode=json&units=metric&cnt=1&appid=69aac194f55ee34ad649fddf0956d227' -O tenki.json
+  # wget -q 'http://api.openweathermap.org/data/2.5/forecast/daily?q=Cairo&mode=json&units=metric&cnt=1&appid=69aac194f55ee34ad649fddf0956d227' -O tenkiEgypt.json
+
+  tempMin=`cat tenki.json | jq '.list[].temp.min'`
+  tempMax=`cat tenki.json | jq '.list[].temp.max'`
+  weather=`cat tenki.json | jq '.list[].weather[].main' -r`
+  # weatherEgypt=`cat tenkiEgypt.json | jq '.list[].weather[].main' -r`
+  weatherJp=`weatherTranslate ${weather}`
+  # weatherEgyptJp=`weatherTranslate ${weatherEgypt}`
+
+  if [ "$weather" = "Rain" -o "$weather" = "Snow" -o "$weather" = "Thunderstorm" ] ; then
+    needUmbrella=true;
+  fi
+
+  # ピッタリの場合は分まで言わないでよし
+  if [ ${nowMinute} = '00' ]; then
+    timeWord=${nowHour}'時'
+  else
+    timeWord=${nowHour}'時'${nowMinute}'分'
+  fi
+  echo ${timeWord}
+  # ことば
+  callWord="さぁ。現在の時間は、${timeWord}でホルスよ。"
+  weatherWord="今日の天気は${weatherJp}、最低気温は${tempMin}度、最高気温は${tempMax}度でホルス。"
+  umbrellaWord="傘を持っていくのを忘れないようにするでホルスよ。"
+  # egyptWeatherWord="ちなみに、エジプトの天気は${weatherEgyptJp}でホルスー！"
+  # 発声
+  if [ $needUmbrella = true ]; then
+    say ${callWord} ${weatherWord} ${umbrellaWord} ${egyptWeatherWord}
+  else
+    say ${callWord} ${weatherWord} ${egyptWeatherWord}
+  fi
+  exit 0
+fi
+
+if [ $1 = 'stop' ]; then
+  killall mplayer
+fi
+
+if [ $1 = 'cancel'  ]; then
+  atJobId=`atq | awk '{print $1}'`
+  if [ "${atJobId}" = "" ]; then
+    echo "あれ？アラームをかけた覚えはないでホルスよ？"
+    exit 1
+  fi
+  at -d ${atJobId}
+  echo "アラームを解除したでホルス。"
+fi

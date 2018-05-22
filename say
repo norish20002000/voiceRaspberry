@@ -1,0 +1,42 @@
+#!/bin/sh
+# say hogehoge でホルスにhogehogeを喋らせる
+set -eu
+
+# 環境設定
+baseDir=$(cd $(dirname $0);pwd)
+wkDir=/var/tmp
+modelDir=${baseDir}/assets/voice/model
+dic=/var/lib/mecab/dic/open-jtalk/naist-jdic
+
+# 声ファイルの設定
+voice=niji.htsvoice
+model=${modelDir}/${voice}
+
+# 効果音ファイルの設定
+# se1=${baseDir}/assets/sound/say1.wav
+
+# 音量
+seVol=87
+voiceVol=100
+
+if [ $# -eq 0 ];then
+echo "please say something!"
+exit 1
+fi
+
+# 引数からテキスト生成
+for i in `seq 1 $#`
+do
+    eval text${i}=$"${i}"
+    eval echo '$text'$i > ${wkDir}/voice${i}.txt
+    open_jtalk -m ${model} -x ${dic} -ow ${wkDir}/voice${i}.wav ${wkDir}/voice${i}.txt
+done
+
+# 再生
+amixer -q set PCM ${seVol}%
+# aplay -q ${se1}
+amixer -q set PCM ${voiceVol}%
+for i in `seq 1 $#`
+do
+    aplay -q ${wkDir}/voice${i}.wav
+done
