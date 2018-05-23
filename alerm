@@ -19,7 +19,7 @@ fi
 
 if [ $1 = 'call' ]; then
   # ABACO LIBROS Y CAFE RADIO
-  # mplayer -really-quiet -volume 20 -playlist 'http://yp.shoutcast.com/sbin/tunein-station.pls?id=512156' </dev/null >/dev/null 2>&1 &
+  # mplayer -really-quiet -volume 20 -playlist 'http://yp.shoutcast.com/sbin/tunein-station.pls?id=hogehoge' </dev/null >/dev/null 2>&1 &
   nowHour=`date +"%k"`
   nowMinute=`date +"%M"`
 
@@ -37,8 +37,8 @@ if [ $1 = 'call' ]; then
     esac
   }
 
-  wget -q 'http://api.openweathermap.org/data/2.5/forecast/daily?q=Tokyo&mode=json&units=metric&cnt=1&appid=69aac194f55ee34ad649fddf0956d227' -O tenki.json
-  # wget -q 'http://api.openweathermap.org/data/2.5/forecast/daily?q=Cairo&mode=json&units=metric&cnt=1&appid=69aac194f55ee34ad649fddf0956d227' -O tenkiEgypt.json
+  wget -q 'http://api.openweathermap.org/data/2.5/forecast/daily?q=Tokyo&mode=json&units=metric&cnt=1&appid=fugafuga' -O tenki.json
+  # wget -q 'http://api.openweathermap.org/data/2.5/forecast/daily?q=Cairo&mode=json&units=metric&cnt=1&appid=fugafuga' -O tenkiEgypt.json
 
   tempMin=`cat tenki.json | jq '.list[].temp.min'`
   tempMax=`cat tenki.json | jq '.list[].temp.max'`
